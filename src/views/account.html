@@ -34,6 +34,18 @@
               <div class="account__balance-value" ng-class="{'account__balance-value--negative': accountCtrl.account.cache.balance < 0}">{{accountCtrl.account.cache.balance | intCurrency : true : dbCtrl.currencyDigits | currency : dbCtrl.currencySymbol : dbCtrl.currencyDigits}}</div>
             </div>
           </div>
+          <div class="account__balance">
+            <div>
+              <div class="account__balance-title">Sum Balance</div>
+              <div class="account__balance-value" ng-class="account__balance-value">{{sumBalance}}</div>
+            </div>
+          </div>
+          <div class="account__balance">
+            <div>
+              <div class="account__balance-title">Selected Balance</div>
+              <div class="account__balance-value" ng-class="account__balance-value">{{selectedBalance}}</div>
+            </div>
+          </div>
         </div>
       </div>
       <div class="account__reconcile" ng-if="accountCtrl.accountId">
@@ -69,8 +81,36 @@
     <div class="account__tr">
       <button class="account__add-button" ng-click="dbCtrl.stopPropagation($event); accountCtrl.createTransaction()"><i class="fa fa-plus"></i> {{'ADD_A_NEW_TRANSACTION' | translate}}</button>
       <button class="account__add-button" ng-click="dbCtrl.stopPropagation($event); accountCtrl.createTransaction()"><i class="fa fa-exchange"></i> {{'MAKE_A_TRANSFER' | translate}}</button>
+      
+      <!-- add -->
+      Filter Field <input type="text" 
+        id="name" 
+        name="search" 
+        ng-model="search"  
+        size="20">
+
+      Date Start 
+      <input type="text" 
+             name="dateStart"
+             size = "10"
+             ng-model="dateStart"/>
+
+      Date End 
+      <input type="text"
+             name="dateEnd"
+             size= "10"
+             ng-model="dateEnd"/>
+
+      CSV 
+      <button class="account__add-button">
+        <i class="fa fa-cog app-view__budget-options"
+             budget-options
+             on-export="dbCtrl.accountFilteredExport(displayedTransactions | searchFromTransactions:search | searchByDateStartEnd :dateStart:dateEnd)"
+             on-backup="dbCtrl.backup()"></i></button>
 
       <button class="account__add-button" ng-if="accountCtrl.selectedTransactions.length" bulk-edit-transactions="accountCtrl.selectedTransactions" manager="dbCtrl.manager" stop-propagation="dbCtrl.stopPropagation" payees="dbCtrl.payees"><i class="fa fa-edit"></i> <span translate="BULK_EDIT_TRANSACTIONS_AMOUNT" translate-values="{number: accountCtrl.selectedTransactions.length}"></span> <i class="fa fa-sort-desc"></i></button>
+
+       <button class="account__add-button" ng-click="accountCtrl.copyToClipboard(accountCtrl.selectedTransactions)">COPY</button>
     </div>
   </div>
   <div class="account__thead" ng-click="dbCtrl.stopPropagation($event)">
@@ -98,10 +138,14 @@
          class="account__transaction-editor"
          ng-click="dbCtrl.stopPropagation($event)"></transaction-editor>
 
-  </div>
-  
+  </div> 
   <div class="account__tbody account__tbody--striped virtual-list" vs-repeat vs-size="dbCtrl.getTransactionHeight(transaction)" ng-class="{'odd-total': displayedTransactions.length % 2}">
-    <div ng-repeat="transaction in displayedTransactions track by transaction.id">
+  
+  <!-- add -->
+  <div ng-repeat="transaction in displayedTransactions | searchFromTransactions:search | searchByDateStartEnd :dateStart:dateEnd  track by transaction.id"> 
+
+
+    
       <div class="account__tr"
            ng-if="accountCtrl.editingTransaction !== transaction"
            ng-click="accountCtrl.selectRow($event, $index+startIndex)"
@@ -116,7 +160,7 @@
           </span>
         </div>
         <div class="account__td account__td--flag"><div class="account__flag" ng-style="{'color': transaction.flag}" flag ng-model="transaction.flag"><div></div></div></div>
-        <div class="account__td account__td--date" transaction-field-focus-name="date">
+        <div class="account__td account__td--date">
           <span><span>{{transaction.date | date : 'shortDate'}}</span></span>
         </div>
         <div class="account__td account__td--check" ng-if="accountCtrl.checkNumber" transaction-field-focus-name="check">

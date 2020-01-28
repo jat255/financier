@@ -12,7 +12,7 @@
 			"type": "image\/png"
 		}
 	],
-	"theme_color": "#76b852",
+	"theme_color": "#68c4af",
 	"start_url": "http:\/\/app.financier.io",
 	"display": "standalone"
 }

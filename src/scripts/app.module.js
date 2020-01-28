@@ -15,6 +15,7 @@ import 'angular-hotkeys-light';
 import 'angular-hotkeys';
 import 'angular-legacy-sortablejs-maintained';
 import 'angular-ladda-lw/dist/angular-ladda-lw';
+import 'angular-clipboard/angular-clipboard.js';
 
 import moment from 'moment';
 
@@ -34,7 +35,8 @@ let financier = angular.module('financier', [
   'angularResizable',
   'fps.hotkeys',
   'ng-sortable',
-  'angular-ladda-lw'
+  'angular-ladda-lw',
+  'angular-clipboard'
 ]).run((offline, $rootScope, $timeout, $filter, $state) => {
   const dateFilter = $filter('date');
 
