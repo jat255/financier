@@ -224,7 +224,7 @@ var fapp = angular.module('financier').controller('accountCtrl', function ($tran
     angular.forEach(this.selectedTransactions, function (item) { 
      var outFlowIntCurrency = $filter('intCurrency')(item.outflow, true, 2);
      var inFlowIntCurrency = $filter('intCurrency')(item.inflow, true, 2);               
-                 (outFlowIntCurrency != undefined ? sum +=  parseFloat(outFlowIntCurrency) : 0);
+                 (outFlowIntCurrency != undefined ? sum -=  parseFloat(outFlowIntCurrency) : 0);
                   (inFlowIntCurrency != undefined ? sum +=  parseFloat(inFlowIntCurrency) : 0);  
             });
         $rootScope.selectedBalance = $filter('currency')(sum, '$', 2);
@@ -380,7 +380,7 @@ var fapp = angular.module('financier').controller('accountCtrl', function ($tran
     angular.forEach(this.selectedTransactions, function (item) { 
      var outFlowIntCurrency = $filter('intCurrency')(item.outflow, true, 2);
      var inFlowIntCurrency = $filter('intCurrency')(item.inflow, true, 2);               
-                 (outFlowIntCurrency != undefined ? sum +=  parseFloat(outFlowIntCurrency) : 0);
+                 (outFlowIntCurrency != undefined ? sum -=  parseFloat(outFlowIntCurrency) : 0);
                   (inFlowIntCurrency != undefined ? sum +=  parseFloat(inFlowIntCurrency) : 0);  
             });
         $rootScope.selectedBalance = $filter('currency')(sum, '$', 2);
@@ -432,10 +432,10 @@ var fapp = angular.module('financier').controller('accountCtrl', function ($tran
     
     if (isRowSelected(rowIndex)) {
          (outFlowIntCurrency != undefined ? sum -=  parseFloat(outFlowIntCurrency) : 0);
-         (inFlowIntCurrency != undefined ? sum -=  parseFloat(inFlowIntCurrency) : 0);
+         (inFlowIntCurrency != undefined ? sum +=  parseFloat(inFlowIntCurrency) : 0);
         unselect(rowIndex);
     } else { 
-          (outFlowIntCurrency != undefined ? sum +=  parseFloat(outFlowIntCurrency) : 0);
+          (outFlowIntCurrency != undefined ? sum -=  parseFloat(outFlowIntCurrency) : 0);
           (inFlowIntCurrency != undefined ? sum +=  parseFloat(inFlowIntCurrency) : 0);          
         select(rowIndex);
     } 
@@ -545,9 +545,24 @@ angular.module('financier').filter('searchFromTransactions', function($rootScope
                 //payee
                 var payee = $rootScope.dbCtrl.getAccountName(i) || $rootScope.dbCtrl.getPayeeName(item.payee);
                 var category = $rootScope.dbCtrl.getCategoryName(item.category, item.date) || $rootScope.actCtrl.transactionNeedsCategory(item);
-                var memo = item._data.memo ? item._data.memo : "";              
+                var memo = item._data.memo ? item._data.memo : "";   
+                
+                var inflow = " ";
+                if( typeof item.inflow != 'undefined') {
+                  inflow = parseInt(item.inflow || "");  
+                  inflow = inflow != NaN ?  $filter('intCurrency')(inflow, true, 2) : " ";
+                }
 
-                var searchField = (payee ? payee : " " ) + (category ? category : " ") + (memo ? memo : " ");
+                var outflow = " ";
+                if( typeof item.outflow != 'undefined') {
+                  outflow = parseInt(item.outflow || "");  
+                  outflow = outflow != NaN ?  $filter('intCurrency')(outflow, true, 2) : " ";
+                }               
+                
+                var searchField = (payee ? payee : " " ) + (category ? category : " ") + (memo ? memo : " ") 
+                  + (inflow ? inflow : " ") + (outflow ? outflow : " ");
+               
+
                 if( searchField.toLowerCase().indexOf( search.toLowerCase() ) != -1 ) {
                   output.push(item);
                 }
@@ -555,19 +570,26 @@ angular.module('financier').filter('searchFromTransactions', function($rootScope
         }
         
         //sumBalance Logic
-        
+       
         for (var i in output) {
           if (output[i].inflow) {
-              sumBalance -= parseInt((output[i].inflow || 0));
-              sumBalance += parseInt((output[i].outflow ||0));
+            if( typeof output[i].inflow != 'undefined') {
+              sumBalance += parseInt((output[i].inflow || 0));
+            }     
+          }
+          if (output[i].outflow) {
+            
+            if( typeof output[i].outflow != 'undefined') {
+              sumBalance -= parseInt((output[i].outflow || 0));
+            }    
+            
           }
         }
-        sumBalance = Math.abs(sumBalance);
         var intCurrency = $filter('intCurrency')(sumBalance, true, 2);
         var currency = $filter('currency')(intCurrency, '$', 2);
         $rootScope.sumBalance = currency;
         
-        console.log( "returning output length: " + output.length);
+        
         return output;
     }
 })
@@ -608,11 +630,18 @@ angular.module('financier').filter('searchByDateStartEnd', function($rootScope, 
         //sumBalance Logic
         for (var i in output) {
           if (output[i].inflow) {
-            sumBalance -= parseInt((output[i].inflow || 0));
-            sumBalance += parseInt((output[i].outflow ||0));
+            if( typeof output[i].inflow != 'undefined') {
+              sumBalance += parseInt((output[i].inflow || 0));
+            }     
+          }
+          if (output[i].outflow) {
+            
+            if( typeof output[i].outflow != 'undefined') {
+              sumBalance -= parseInt((output[i].outflow || 0));
+            }    
+            
           }
         }
-        sumBalance = Math.abs(sumBalance);
         var intCurrency = $filter('intCurrency')(sumBalance, true, 2);
         var currency = $filter('currency')(intCurrency, '$', 2);
         $rootScope.sumBalance = currency;
