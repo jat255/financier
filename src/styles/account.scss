@@ -49,7 +49,7 @@ $break-width: 900px;
 }
 
 .account__tr--stripe {
-  background: lighten($primary, 43%);
+  background: lighten($primary, 51%);
 }
 
 // .account__tbody--striped {
@@ -295,7 +295,7 @@ i.account__reconcile-close {
 }
 
 .account__balance-value {
-  color: $primary;
+  color: $positive-number;
   font-size: 1.3em;
 }
 

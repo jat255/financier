@@ -398,3 +398,22 @@ i.budget__category-collapse {
     text-decoration: underline;
   }
 }
+
+::-webkit-scrollbar-track
+{
+	border-radius: 6px;
+	background-color: lighten($primary, 53%);
+}
+
+::-webkit-scrollbar
+{
+	width: 6px;
+	background-color: lighten($primary, 53%);
+}
+
+::-webkit-scrollbar-thumb
+{
+	-webkit-box-shadow: inset 0 0 4px rgba(0,0,0,.3);
+	background-color: darken($primary, 7%);
+
+}
