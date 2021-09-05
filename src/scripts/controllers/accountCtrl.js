@@ -218,16 +218,17 @@ var fapp = angular.module('financier').controller('accountCtrl', function ($tran
     $scope.displayedTransactions = $filter('searchByDateStartEnd')($scope.displayedTransactions, $scope.dateStart, $scope.dateEnd);
     
     this.selectedTransactions = $scope.displayedTransactions;
-
+    // console.log(`(all) selectedTransactions: ${this.selectedTransactions}`)
     //selected Balance logic
     sum = 0;
     angular.forEach(this.selectedTransactions, function (item) { 
-     var outFlowIntCurrency = $filter('intCurrency')(item.outflow, true, 2);
-     var inFlowIntCurrency = $filter('intCurrency')(item.inflow, true, 2);               
+     var outFlowIntCurrency = $filter('intCurrency')(item.outflow, true, 0);
+     var inFlowIntCurrency = $filter('intCurrency')(item.inflow, true, 0);               
                  (outFlowIntCurrency != undefined ? sum -=  parseFloat(outFlowIntCurrency) : 0);
                   (inFlowIntCurrency != undefined ? sum +=  parseFloat(inFlowIntCurrency) : 0);  
             });
-        $rootScope.selectedBalance = $filter('currency')(sum, '$', 2);
+    // console.log(`(all) sum is: ${sum}`)
+    $rootScope.selectedBalance = sum;
   };
 
   $scope.tempdata = [];
@@ -237,7 +238,8 @@ var fapp = angular.module('financier').controller('accountCtrl', function ($tran
       if (val) {        
         this.selectAll();
       } else {
-        $rootScope.selectedBalance = $filter('currency')("0.00", '$', 2);         
+        // console.log("deselected all")
+        $rootScope.selectedBalance = 0;         
         this.selectedTransactions = [];
       }
     }
@@ -378,12 +380,12 @@ var fapp = angular.module('financier').controller('accountCtrl', function ($tran
      //selected Balance logic
     sum = 0;
     angular.forEach(this.selectedTransactions, function (item) { 
-     var outFlowIntCurrency = $filter('intCurrency')(item.outflow, true, 2);
-     var inFlowIntCurrency = $filter('intCurrency')(item.inflow, true, 2);               
-                 (outFlowIntCurrency != undefined ? sum -=  parseFloat(outFlowIntCurrency) : 0);
-                  (inFlowIntCurrency != undefined ? sum +=  parseFloat(inFlowIntCurrency) : 0);  
-            });
-        $rootScope.selectedBalance = $filter('currency')(sum, '$', 2);
+      var outFlowIntCurrency = $filter('intCurrency')(item.outflow, true, 0);
+      var inFlowIntCurrency = $filter('intCurrency')(item.inflow, true, 0);               
+      (outFlowIntCurrency != undefined ? sum -=  parseFloat(outFlowIntCurrency) : 0);
+      (inFlowIntCurrency != undefined ? sum +=  parseFloat(inFlowIntCurrency) : 0);  
+    });
+    $rootScope.selectedBalance = sum;
 
     $rootScope.$broadcast('vsRepeatTrigger');
   };
@@ -427,19 +429,29 @@ var fapp = angular.module('financier').controller('accountCtrl', function ($tran
   }  
 
   function changeSelectionStatus(rowIndex) {   
-    var outFlowIntCurrency = $filter('intCurrency')($scope.displayedTransactions[rowIndex].outflow, true, 2);
-    var inFlowIntCurrency = $filter('intCurrency')($scope.displayedTransactions[rowIndex].inflow, true, 2);     
+    // console.log(`Inside changeSelectionStatus with rowIndex: ${rowIndex}`)
+    // console.log(`$scope.displayedTransactions[rowIndex].outflow is: ${$scope.displayedTransactions[rowIndex].outflow}`)
+    // console.log(`$scope.displayedTransactions[rowIndex].inflow is: ${$scope.displayedTransactions[rowIndex].inflow}`)
+    var outFlowIntCurrency = $filter('intCurrency')($scope.displayedTransactions[rowIndex].outflow, true, 0);
+    var inFlowIntCurrency = $filter('intCurrency')($scope.displayedTransactions[rowIndex].inflow, true, 0);     
     
+    // console.log(`outFlowIntCurrency is: ${outFlowIntCurrency}`)
+    // console.log(`inFlowIntCurrency is: ${inFlowIntCurrency}`)
+    // console.log(`sum before changes is: ${sum}`)
     if (isRowSelected(rowIndex)) {
-         (outFlowIntCurrency != undefined ? sum -=  parseFloat(outFlowIntCurrency) : 0);
-         (inFlowIntCurrency != undefined ? sum +=  parseFloat(inFlowIntCurrency) : 0);
+        // row was de-selected, so we want to subtract any inflows and add any outflows
+         (outFlowIntCurrency != undefined ? sum +=  parseFloat(outFlowIntCurrency) : 0);
+         (inFlowIntCurrency != undefined ? sum -=  parseFloat(inFlowIntCurrency) : 0);
         unselect(rowIndex);
     } else { 
+        // row was selected, so we want to add inflows to total and subtract outflows
           (outFlowIntCurrency != undefined ? sum -=  parseFloat(outFlowIntCurrency) : 0);
           (inFlowIntCurrency != undefined ? sum +=  parseFloat(inFlowIntCurrency) : 0);          
         select(rowIndex);
     } 
-    $rootScope.selectedBalance = $filter('currency')(sum, '$', 2);
+    // console.log(`sum at end is: ${sum}`)
+    $rootScope.selectedBalance = sum;
+    // console.log(`selectedBalance is: ${$rootScope.selectedBalance}`)
   }
 
   function select(rowIndex) {
@@ -513,17 +525,17 @@ angular.module('financier').filter('searchFromTransactions', function($rootScope
     return function (input, search) {
       
      if( typeof search == 'undefined' ) {
-       console.log( "no search input");
+      //  console.log( "no search input");
        return input;
      }
-      console.log( "search transactions: " + search );
+      // console.log( "search transactions: " + search );
       
         var output = [];
         var sumBalance = 0;
        
         //if you search once, this path gets taken
         if (!search) {
-            console.log( "no search field");
+            // console.log( "no search field");
             return input;
             /*
             output = input;
@@ -550,13 +562,17 @@ angular.module('financier').filter('searchFromTransactions', function($rootScope
                 var inflow = " ";
                 if( typeof item.inflow != 'undefined') {
                   inflow = parseInt(item.inflow || "");  
-                  inflow = inflow != NaN ?  $filter('intCurrency')(inflow, true, 2) : " ";
+                  // console.log(`inflow before filter is: ${inflow}`)
+                  inflow = inflow != NaN ?  $filter('intCurrency')(inflow, true, 0) : " ";
+                  // console.log(`inflow after filter is: ${inflow}`)
                 }
 
                 var outflow = " ";
                 if( typeof item.outflow != 'undefined') {
                   outflow = parseInt(item.outflow || "");  
-                  outflow = outflow != NaN ?  $filter('intCurrency')(outflow, true, 2) : " ";
+                  // console.log(`outflow before filter is: ${outflow}`)
+                  outflow = outflow != NaN ?  $filter('intCurrency')(outflow, true, 0) : " ";
+                  // console.log(`outflow before filter is: ${outflow}`)
                 }               
                 
                 var searchField = (payee ? payee : " " ) + (category ? category : " ") + (memo ? memo : " ") 
@@ -575,19 +591,21 @@ angular.module('financier').filter('searchFromTransactions', function($rootScope
           if (output[i].inflow) {
             if( typeof output[i].inflow != 'undefined') {
               sumBalance += parseInt((output[i].inflow || 0));
+              // console.log(`sumBalance after inflow is: ${sumBalance}`)
             }     
           }
           if (output[i].outflow) {
             
             if( typeof output[i].outflow != 'undefined') {
               sumBalance -= parseInt((output[i].outflow || 0));
+              // console.log(`sumBalance after outflow is: ${sumBalance}`)
             }    
             
           }
         }
-        var intCurrency = $filter('intCurrency')(sumBalance, true, 2);
-        var currency = $filter('currency')(intCurrency, '$', 2);
-        $rootScope.sumBalance = currency;
+        // var intCurrency = $filter('intCurrency')(sumBalance, true, 2);
+        // var currency = $filter('currency')(intCurrency, '$', 2);
+        $rootScope.sumBalance = sumBalance;
         
         
         return output;
