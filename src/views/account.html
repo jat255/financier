@@ -80,9 +80,10 @@
   <div class="account__tbody">
     <div class="account__tr">
       <button class="account__add-button" ng-click="dbCtrl.stopPropagation($event); accountCtrl.createTransaction()"><i class="fa fa-plus"></i> {{'ADD_A_NEW_TRANSACTION' | translate}}</button>
-      <button class="account__add-button" ng-click="dbCtrl.stopPropagation($event); accountCtrl.createTransaction()"><i class="fa fa-exchange"></i> {{'MAKE_A_TRANSFER' | translate}}</button>
+      <!-- <button class="account__add-button" ng-click="dbCtrl.stopPropagation($event); accountCtrl.createTransaction()"><i class="fa fa-exchange"></i> {{'MAKE_A_TRANSFER' | translate}}</button> -->
       
       <!-- add -->
+      <!-- TODO: either fix styling or move this somewhere else like into a filter button popup -->
       Filter Field <input type="text" 
         id="name" 
         name="search" 

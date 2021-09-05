@@ -519,6 +519,7 @@ var fapp = angular.module('financier').controller('accountCtrl', function ($tran
 
 //this searches transactions
 angular.module('financier').filter('searchFromTransactions', function($rootScope, $filter) {
+  // TODO transactions don't come back if you filter, then select some rows, then change your filter
 
     //input is the entire set of rows
     //search is the phrase
@@ -535,7 +536,10 @@ angular.module('financier').filter('searchFromTransactions', function($rootScope
        
         //if you search once, this path gets taken
         if (!search) {
-            // console.log( "no search field");
+            // this is triggered if search field is empty string,
+            // so reset sumBalance to 0 here
+            // console.log( "search field is empty");
+            $rootScope.sumBalance = 0;
             return input;
             /*
             output = input;
@@ -613,6 +617,7 @@ angular.module('financier').filter('searchFromTransactions', function($rootScope
 })
 
 //searches by start and end date
+// TODO: this doesn't work, so fix it
 angular.module('financier').filter('searchByDateStartEnd', function($rootScope, $filter) {
     console.log( "search by date start end");
     return function (input, dateStart, dateEnd) {   
