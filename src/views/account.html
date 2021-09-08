@@ -1,6 +1,7 @@
 <div class="account"
      st-table="displayedTransactions"
      st-safe-src="transactions"
+     st-set-filter="transactionFilters"
      disable-ng-animate>
   <div class="account__tbody">
     <div class="account__tr account__tr--overview">
@@ -129,6 +130,19 @@
       <div class="account__th account__td--small account__cell-outflow" st-multi-sort="dbCtrl.customSorts.outflow"><span><span>{{'OUTFLOW' | translate}}</span></span></div>
       <div class="account__th account__td--small account__cell-inflow" st-multi-sort="dbCtrl.customSorts.inflow"><span><span>{{'INFLOW' | translate}}</span></span></div>
       <div class="account__th account__cell-cleared" st-multi-sort="dbCtrl.customSorts.cleared"><span><span>{{'CLEARED' | translate}}</span></span></div>
+    </div>
+    <div class="account__tr">
+      <div class="account__th account__th--select"></div>
+      <div class="account__th account__td--large" ng-if="!accountCtrl.accountId"><input st-search="account" placeholder="search accounts" class="input-sm form-control" type="search"/></div>
+      <div class="account__th account__th--flag" ><div class=""><div></div></div></div>
+      <div class="account__th account__th--date" ><!--<input st-search="date" placeholder="search dates" class="input-sm form-control" type="search"/>--></div>
+      <div class="account__th account__th--check" ng-if="accountCtrl.checkNumber"><input st-search="checkNumber" placeholder="search check" class="input-sm form-control" type="search"/></div>
+      <div class="account__th account__td--large"><span><span><input st-search="payee" placeholder="search payees" class="input-sm form-control" type="search"/></span></span></div>
+      <div class="account__th account__td--large" ng-if="accountCtrl.account.onBudget"><input st-search="category" placeholder="search categories" class="input-sm form-control" type="search"/></div>
+      <div class="account__th account__cell-memo"><input st-search="memo" placeholder="search memos" class="input-sm form-control" type="search"/></div>
+      <div class="account__th account__td--small account__cell-outflow"><input st-search="outflow" placeholder="search outflows" class="input-sm form-control" type="search"/></div>
+      <div class="account__th account__td--small account__cell-inflow"><input st-search="inflow" placeholder="search inflows" class="input-sm form-control" type="search"/></div>
+      <div class="account__th account__cell-cleared"><span><span></span></span></div>
     </div>
   </div>
 
