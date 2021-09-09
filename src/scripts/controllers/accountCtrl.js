@@ -211,6 +211,25 @@ var fapp = angular.module('financier').controller('accountCtrl', function ($tran
     }
   };
 
+  $scope.$watch('displayedTransactions', () => {
+    // console.log('inside sumDisplayedTransactions')
+    // debugger;
+    let sumBalance = 0;
+    angular.forEach($scope.displayedTransactions, function(item) {
+       if (item.inflow) {
+          if( typeof item.inflow != 'undefined') {
+            sumBalance += parseInt((item.inflow || 0));
+          }     
+        }
+        if (item.outflow) {
+          if( typeof item.outflow != 'undefined') {
+            sumBalance -= parseInt((item.outflow || 0));
+          }    
+        }
+    })
+    $rootScope.sumBalance = sumBalance;
+  })
+
   this.selectAll = () => {     
 
     console.log( "selectAll");

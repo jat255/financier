@@ -35,7 +35,7 @@
               <div class="account__balance-value" ng-class="{'account__balance-value--negative': accountCtrl.account.cache.balance < 0}">{{accountCtrl.account.cache.balance | intCurrency : true : dbCtrl.currencyDigits | currency : dbCtrl.currencySymbol : dbCtrl.currencyDigits}}</div>
             </div>
           </div>
-          <div class="account__balance" ng-class="{'hidden': sumBalance == 0}" >
+          <div class="account__balance" ng-class="{'hidden': sumBalance == 0 || sumBalance == accountCtrl.account.cache.balance}" >
             <div>
               <div class="account__balance-title">Filtered Balance</div>
               <div class="account__balance-value" ng-class="{'account__balance-value--negative': sumBalance < 0}">{{sumBalance | intCurrency : true : dbCtrl.currencyDigits | currency : dbCtrl.currencySymbol : dbCtrl.currencyDigits}}</div>
@@ -132,7 +132,7 @@
       <div class="account__th account__cell-cleared" st-multi-sort="dbCtrl.customSorts.cleared"><span><span>{{'CLEARED' | translate}}</span></span></div>
     </div>
     <div class="account__tr">
-      <div class="account__th account__th--select"></div>
+      <div class="account__th account__th--select"><i title="Filter transactions" class="fa fa-filter"></i></div>
       <div class="account__th account__td--large" ng-if="!accountCtrl.accountId"><input st-search="account" placeholder="search accounts" class="input-sm form-control" type="search"/></div>
       <div class="account__th account__th--flag" ><div class=""><div></div></div></div>
       <div class="account__th account__th--date" ><!--<input st-search="date" placeholder="search dates" class="input-sm form-control" type="search"/>--></div>
