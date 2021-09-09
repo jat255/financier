@@ -232,10 +232,6 @@ var fapp = angular.module('financier').controller('accountCtrl', function ($tran
 
   this.selectAll = () => {     
 
-    console.log( "selectAll");
-    $scope.displayedTransactions = $filter('searchFromTransactions')($scope.displayedTransactions, $scope.search);
-    $scope.displayedTransactions = $filter('searchByDateStartEnd')($scope.displayedTransactions, $scope.dateStart, $scope.dateEnd);
-    
     this.selectedTransactions = $scope.displayedTransactions;
     // console.log(`(all) selectedTransactions: ${this.selectedTransactions}`)
     //selected Balance logic
@@ -343,11 +339,6 @@ var fapp = angular.module('financier').controller('accountCtrl', function ($tran
   };
 
   this.selectRow = function (event, rowIndex) {     
-      console.log( "selectRow");
-    
-      $scope.displayedTransactions = $filter('searchFromTransactions')($scope.displayedTransactions, $scope.search);
-      $scope.displayedTransactions = $filter('searchByDateStartEnd')($scope.displayedTransactions, $scope.dateStart, $scope.dateEnd);
-    
     $scope.dbCtrl.stopPropagation(event);
 
     this.editingTransaction = null;
@@ -533,110 +524,9 @@ var fapp = angular.module('financier').controller('accountCtrl', function ($tran
   });
 });
 
-
-
-//this searches transactions
-angular.module('financier').filter('searchFromTransactions', function($rootScope, $filter) {
-  // TODO transactions don't come back if you filter, then select some rows, then change your filter
-
-    //input is the entire set of rows
-    //search is the phrase
-    return function (input, search) {
-      
-     if( typeof search == 'undefined' ) {
-      //  console.log( "no search input");
-       return input;
-     }
-      // console.log( "search transactions: " + search );
-      
-        var output = [];
-        var sumBalance = 0;
-       
-        //if you search once, this path gets taken
-        if (!search) {
-            // this is triggered if search field is empty string,
-            // so reset sumBalance to 0 here
-            // console.log( "search field is empty");
-            $rootScope.sumBalance = 0;
-            return input;
-            /*
-            output = input;
-            if ($rootScope.all.length == 0) {
-                $rootScope.all = input;
-            }
-            else {
-                console.log( "input length: " + input.length );
-                output = $rootScope.all;                
-            }*/            
-        } else {            
-            //input = $rootScope.all; 
-
-            angular.forEach(input, function (item) {             
-                var i = '';
-                if (item.transfer && item.transfer.account) {
-                    i = item.transfer.account;
-                }
-                //payee
-                var payee = $rootScope.dbCtrl.getAccountName(i) || $rootScope.dbCtrl.getPayeeName(item.payee);
-                var category = $rootScope.dbCtrl.getCategoryName(item.category, item.date) || $rootScope.actCtrl.transactionNeedsCategory(item);
-                var memo = item._data.memo ? item._data.memo : "";   
-                
-                var inflow = " ";
-                if( typeof item.inflow != 'undefined') {
-                  inflow = parseInt(item.inflow || "");  
-                  // console.log(`inflow before filter is: ${inflow}`)
-                  inflow = inflow != NaN ?  $filter('intCurrency')(inflow, true, 0) : " ";
-                  // console.log(`inflow after filter is: ${inflow}`)
-                }
-
-                var outflow = " ";
-                if( typeof item.outflow != 'undefined') {
-                  outflow = parseInt(item.outflow || "");  
-                  // console.log(`outflow before filter is: ${outflow}`)
-                  outflow = outflow != NaN ?  $filter('intCurrency')(outflow, true, 0) : " ";
-                  // console.log(`outflow before filter is: ${outflow}`)
-                }               
-                
-                var searchField = (payee ? payee : " " ) + (category ? category : " ") + (memo ? memo : " ") 
-                  + (inflow ? inflow : " ") + (outflow ? outflow : " ");
-               
-
-                if( searchField.toLowerCase().indexOf( search.toLowerCase() ) != -1 ) {
-                  output.push(item);
-                }
-            });
-        }
-        
-        //sumBalance Logic
-       
-        for (var i in output) {
-          if (output[i].inflow) {
-            if( typeof output[i].inflow != 'undefined') {
-              sumBalance += parseInt((output[i].inflow || 0));
-              // console.log(`sumBalance after inflow is: ${sumBalance}`)
-            }     
-          }
-          if (output[i].outflow) {
-            
-            if( typeof output[i].outflow != 'undefined') {
-              sumBalance -= parseInt((output[i].outflow || 0));
-              // console.log(`sumBalance after outflow is: ${sumBalance}`)
-            }    
-            
-          }
-        }
-        // var intCurrency = $filter('intCurrency')(sumBalance, true, 2);
-        // var currency = $filter('currency')(intCurrency, '$', 2);
-        $rootScope.sumBalance = sumBalance;
-        
-        
-        return output;
-    }
-})
-
 angular.module('financier').filter('transactionFilters', function($rootScope, $filter){
   return function(array, expression){
-    console.log(`expression is: ${JSON.stringify(expression, null, 4)}`)
+    // console.log(`filter expression is: ${JSON.stringify(expression, null, 4)}`)
       return array.filter(function(val, index){
         // in this function's context, `expression` is an object with
         // the active filters entered in each field; `val` is the data

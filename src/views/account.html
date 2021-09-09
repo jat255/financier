@@ -84,30 +84,11 @@
       <!-- <button class="account__add-button" ng-click="dbCtrl.stopPropagation($event); accountCtrl.createTransaction()"><i class="fa fa-exchange"></i> {{'MAKE_A_TRANSFER' | translate}}</button> -->
       
       <!-- add -->
-      <!-- TODO: either fix styling or move this somewhere else like into a filter button popup -->
-      Filter Field <input type="text" 
-        id="name" 
-        name="search" 
-        ng-model="search"  
-        size="20">
-
-      Date Start 
-      <input type="text" 
-             name="dateStart"
-             size = "10"
-             ng-model="dateStart"/>
-
-      Date End 
-      <input type="text"
-             name="dateEnd"
-             size= "10"
-             ng-model="dateEnd"/>
-
       CSV 
       <button class="account__add-button">
         <i class="fa fa-cog app-view__budget-options"
              budget-options
-             on-export="dbCtrl.accountFilteredExport(displayedTransactions | searchFromTransactions:search | searchByDateStartEnd :dateStart:dateEnd)"
+             on-export="dbCtrl.accountFilteredExport(displayedTransactions | searchByDateStartEnd :dateStart:dateEnd)"
              on-backup="dbCtrl.backup()"></i></button>
 
       <button class="account__add-button" ng-if="accountCtrl.selectedTransactions.length" bulk-edit-transactions="accountCtrl.selectedTransactions" manager="dbCtrl.manager" stop-propagation="dbCtrl.stopPropagation" payees="dbCtrl.payees"><i class="fa fa-edit"></i> <span translate="BULK_EDIT_TRANSACTIONS_AMOUNT" translate-values="{number: accountCtrl.selectedTransactions.length}"></span> <i class="fa fa-sort-desc"></i></button>
@@ -157,7 +138,7 @@
   <div class="account__tbody account__tbody--striped virtual-list" vs-repeat vs-size="dbCtrl.getTransactionHeight(transaction)" ng-class="{'odd-total': displayedTransactions.length % 2}">
   
   <!-- add -->
-  <div ng-repeat="transaction in displayedTransactions | searchFromTransactions:search | searchByDateStartEnd :dateStart:dateEnd  track by transaction.id"> 
+  <div ng-repeat="transaction in displayedTransactions | searchByDateStartEnd :dateStart:dateEnd  track by transaction.id"> 
 
 
     
