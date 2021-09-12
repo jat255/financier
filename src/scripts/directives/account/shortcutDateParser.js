@@ -1,4 +1,6 @@
-angular.module('financier').directive('notInsaneDateValidator', () => {
+import DateParser from 'angular-dateParser';
+
+angular.module('financier').directive('shortcutDateParser', () => {
   return {
     restrict: 'A',
     require: 'ngModel',

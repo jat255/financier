@@ -51,6 +51,8 @@ import './directives/touchEnd';
 import './directives/budgetOptions';
 import './directives/dateRange';
 import './directives/resizeCategories';
+import './directives/xdStSearch';
+import './directives/account/shortcutDateParser';
 
 import './directives/subscription/creditCard';
 import './directives/subscription/creditCardSpaces';

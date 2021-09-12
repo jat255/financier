@@ -526,7 +526,7 @@ var fapp = angular.module('financier').controller('accountCtrl', function ($tran
 
 angular.module('financier').filter('transactionFilters', function($rootScope, $filter){
   return function(array, expression){
-    // console.log(`filter expression is: ${JSON.stringify(expression, null, 4)}`)
+    console.log(`filter expression is: ${JSON.stringify(expression, null, 4)}`)
       return array.filter(function(val, index){
         // in this function's context, `expression` is an object with
         // the active filters entered in each field; `val` is the data
@@ -547,7 +547,7 @@ angular.module('financier').filter('transactionFilters', function($rootScope, $f
         let propertyToSearch;
         let uuidToSearch;
         let strToSearch;
-
+        
         // do search on accounts if there was a value in the account filter
         if (expression.account){
           uuidToSearch = val.account  // this is the account ID in each row of the table
@@ -559,6 +559,10 @@ angular.module('financier').filter('transactionFilters', function($rootScope, $f
           } else {
             accountMatch = false;
           }
+        }
+
+        if (expression.dateRange) {
+          debugger;
         }
 
         // search for payee or transfer, either single or in (TODO) splits

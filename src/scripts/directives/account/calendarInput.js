@@ -31,6 +31,10 @@ angular.module('financier').directive('calendarInput', ($rootScope, $locale, inp
       $scope.thisMonth = new Date();
 
       $scope.$watch((() => this.ngModel), m => {
+        // if date is undefined, set it to today with a new Date
+        if (!m){
+          m = new Date();
+        }
         if (m) {
           $scope.thisMonth = m;
           $scope.month = $scope.generateMonth(m, m);
