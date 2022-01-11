@@ -116,12 +116,16 @@
       <div class="account__th account__th--select"><i title="Filter transactions" class="fa fa-filter"></i></div>
       <div class="account__th account__td--large" ng-if="!accountCtrl.accountId"><input st-search="account" placeholder="search accounts" class="input-sm form-control" type="search"/></div>
       <div class="account__th account__th--flag" ><div class=""><div></div></div></div>
-      <div class="account__th account__th--date" >
+      <div class="account__th account__th--date-split account__th--date-split-left" >
         <!-- TODO: Figure out how to clear search, since if date can't be parsed, it just errors with invalid date rather than
                    clearing out the actual value -->
-        <input calendar-input xd-st-search="dateStart" ng-model="accountCtrl.dateSearchStart"
+        <input calendar-input date-parser="shortDate" xd-st-search="dateStart" ng-model="accountCtrl.dateSearchStart"
                class="input-sm form-control" type="search" placeholder="From">
-        <!-- <input date-range-picker ng-model="datePicker.date"  placeholder="search dates"/> -->
+      </div>      
+      <div class="account__th account__th--date-split" >
+               <input calendar-input date-parser="shortDate" xd-st-search="dateEnd" ng-model="accountCtrl.dateSearchEnd"
+               class="input-sm form-control" type="search" placeholder="To">
+        <!-- <input date-range ng-model="datePicker.date"  placeholder="search dates"/> -->
         <!-- <st-date-range predicate="date" selected-dates></st-date-range> -->
       </div>
       <div class="account__th account__th--check" ng-if="accountCtrl.checkNumber"><input st-search="checkNumber" placeholder="search check" class="input-sm form-control" type="search"/></div>
