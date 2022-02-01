@@ -123,10 +123,8 @@
                class="input-sm form-control" type="search" placeholder="From">
       </div>      
       <div class="account__th account__th--date-split" >
-               <input calendar-input date-parser="shortDate" xd-st-search="dateEnd" ng-model="accountCtrl.dateSearchEnd"
+               <input calendar-input-end date-parser="shortDate" xd-st-search="dateEnd" ng-model="accountCtrl.dateSearchEnd"
                class="input-sm form-control" type="search" placeholder="To">
-        <!-- <input date-range ng-model="datePicker.date"  placeholder="search dates"/> -->
-        <!-- <st-date-range predicate="date" selected-dates></st-date-range> -->
       </div>
       <div class="account__th account__th--check" ng-if="accountCtrl.checkNumber"><input st-search="checkNumber" placeholder="search check" class="input-sm form-control" type="search"/></div>
       <div class="account__th account__td--large"><span><span><input st-search="payee" placeholder="search payees" class="input-sm form-control" type="search"/></span></span></div>

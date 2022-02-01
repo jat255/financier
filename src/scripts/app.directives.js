@@ -2,6 +2,7 @@ import './directives/account/accountSuggest';
 import './directives/account/autosuggest';
 import './directives/account/bulkEditTransactions';
 import './directives/account/calendarInput';
+import './directives/account/calendarInputEnd';
 import './directives/account/categorySuggest';
 import './directives/account/flag';
 import './directives/account/memoInput';
