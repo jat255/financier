@@ -533,7 +533,6 @@ angular.module('financier').filter('transactionFilters', function($rootScope, $f
         // representation of each row of the table
 
         // TODO: improve this filtering to include searching on split contents
-        // TODO: implement date filtering using a pop-up
 
         // placeholders for each field match
         let dateMatch = true;
@@ -561,8 +560,19 @@ angular.module('financier').filter('transactionFilters', function($rootScope, $f
           }
         }
 
-        if (expression.dateRange) {
-          debugger;
+        // Date filtering
+        if (expression.dateStart) {
+          let dateStart = new Date(expression.dateStart);
+          dateMatch = dateStart <= val.date;
+        }
+        if (expression.dateEnd) {
+          let dateEnd = new Date(expression.dateEnd);
+          dateMatch = dateEnd >= val.date;
+        }
+        if (expression.dateStart && expression.dateEnd) {
+          let dateStart = new Date(expression.dateStart);
+          let dateEnd = new Date(expression.dateEnd);
+          dateMatch = (dateStart <= val.date) && (val.date <= dateEnd);
         }
 
         // search for payee or transfer, either single or in (TODO) splits
@@ -636,6 +646,7 @@ angular.module('financier').filter('transactionFilters', function($rootScope, $f
 
         return (
           accountMatch && 
+          dateMatch &&
           payeeOrTransferMatch &&
           checkNumberMatch && 
           categoryMatch &&

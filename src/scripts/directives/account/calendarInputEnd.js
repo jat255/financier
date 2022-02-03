@@ -72,7 +72,7 @@ angular.module('financier').directive('calendarInputEnd', ($rootScope, $locale, 
 
         } else if (event.which === 13) { // enter
           dropSetup.close();
-          focusNextField();
+          focusNextFieldEnd();
         } else if (event.which === 34) { // pageDown
           this.ngModel = moment(this.ngModel).add(-1, 'month').toDate();
 
@@ -136,7 +136,6 @@ angular.module('financier').directive('calendarInputEnd', ($rootScope, $locale, 
       };
 
       const update = () => {
-        console.log("Inside update of calendarInputEnd.js");
         $scope.monthEnd = $scope.generateMonthEnd($scope.thisMonthEnd, this.ngModel);
       };
 
