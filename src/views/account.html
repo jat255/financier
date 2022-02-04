@@ -88,7 +88,7 @@
       <button class="account__add-button">
         <i class="fa fa-cog app-view__budget-options"
              budget-options
-             on-export="dbCtrl.accountFilteredExport(displayedTransactions | searchByDateStartEnd :dateStart:dateEnd)"
+             on-export="dbCtrl.accountFilteredExport(displayedTransactions)"
              on-backup="dbCtrl.backup()"></i></button>
 
       <button class="account__add-button" ng-if="accountCtrl.selectedTransactions.length" bulk-edit-transactions="accountCtrl.selectedTransactions" manager="dbCtrl.manager" stop-propagation="dbCtrl.stopPropagation" payees="dbCtrl.payees"><i class="fa fa-edit"></i> <span translate="BULK_EDIT_TRANSACTIONS_AMOUNT" translate-values="{number: accountCtrl.selectedTransactions.length}"></span> <i class="fa fa-sort-desc"></i></button>
@@ -147,7 +147,7 @@
   <div class="account__tbody account__tbody--striped virtual-list" vs-repeat vs-size="dbCtrl.getTransactionHeight(transaction)" ng-class="{'odd-total': displayedTransactions.length % 2}">
   
   <!-- add -->
-  <div ng-repeat="transaction in displayedTransactions | searchByDateStartEnd :dateStart:dateEnd  track by transaction.id"> 
+  <div ng-repeat="transaction in displayedTransactions track by transaction.id"> 
 
 
     
