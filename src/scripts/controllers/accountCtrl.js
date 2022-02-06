@@ -620,7 +620,7 @@ angular.module('financier').filter('transactionFilters', function($rootScope, $f
               memoMatch = false;
             }
           }
-          // search outflows; TODO: allow for "=XX.xx" syntax which will look for exact match of value
+          // search outflows
           if (expression.outflow) {
             if (val.outflow) {
               let outflowFloatStr = $filter('intCurrency')(val.outflow)
@@ -631,7 +631,7 @@ angular.module('financier').filter('transactionFilters', function($rootScope, $f
               outflowMatch = false
             }
           }
-          // search inflows; TODO: allow for "=XX.xx" syntax which will look for exact match of value
+          // search inflows
           if (expression.inflow) {
             if (val.inflow) {
               let inflowFloatStr = $filter('intCurrency')(val.inflow)
