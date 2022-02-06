@@ -377,6 +377,26 @@ i.account__reconcile-close {
   width: 120px;
 }
 
+// make date-split cells half as wide as regular date
+.account__th--date-split {
+  width: 60px;
+}
+
+// remove line between two date-split cells
+.account__th--date-split.account__th--date-split-left {
+  border-right: none;
+}
+
+// set width of filter inputs for date split
+.account__th--date-split > input {
+  margin-left: -5px;
+  width: 50px;
+}
+
+.val-input-search {
+  width: 100%;
+}
+
 .account__th--select,
 .account__td--select {
   line-height: 1.9;
@@ -562,4 +582,8 @@ i.account__reconcile-close {
 .account__amount-to-assign {
   position: absolute;
   right: 0;
+}
+
+.hidden {
+  display: none;
 }

@@ -4,7 +4,7 @@ angular.module('financier').controller('dbCtrl', function (exportCsv, monthManag
   const that = this;
 
   const dateFilter = $filter('date');
-
+  console.log("data",data)
   let {manager, categories, masterCategories, payees} = data;
   const budgetId = $stateParams.budgetId;
 
@@ -27,6 +27,27 @@ angular.module('financier').controller('dbCtrl', function (exportCsv, monthManag
   this.export = () => {
     exportCsv.create({
       transactions: Object.keys(this.manager.transactions).map(id => this.manager.transactions[id]),
+      accounts: this.accounts,
+      masterCategories: this.masterCategories,
+      categories: this.categories,
+      payees: this.payees,
+      currencySymbol: this.currencySymbol,
+      currencyDigits: this.currencyDigits,
+      months: this.manager.months,
+      budgetName: this.budgetRecord.name
+    });
+  };
+
+  this.accountFilteredExport = output => {
+    var tmpoutput = {};
+    for (var i in output) {
+      if (!tmpoutput[output[i].id]) {
+        tmpoutput[output[i].id] = output[i];
+      }
+    }
+    this.manager.transactions = tmpoutput;    
+    exportCsv.create({
+      transactions:Object.keys(this.manager.transactions).map(id => this.manager.transactions[id]),
       accounts: this.accounts,
       masterCategories: this.masterCategories,
       categories: this.categories,

@@ -1,6 +1,7 @@
 <div class="account"
      st-table="displayedTransactions"
      st-safe-src="transactions"
+     st-set-filter="transactionFilters"
      disable-ng-animate>
   <div class="account__tbody">
     <div class="account__tr account__tr--overview">
@@ -32,6 +33,18 @@
             <div>
               <div class="account__balance-title">{{'WORKING_BALANCE' | translate}}</div>
               <div class="account__balance-value" ng-class="{'account__balance-value--negative': accountCtrl.account.cache.balance < 0}">{{accountCtrl.account.cache.balance | intCurrency : true : dbCtrl.currencyDigits | currency : dbCtrl.currencySymbol : dbCtrl.currencyDigits}}</div>
+            </div>
+          </div>
+          <div class="account__balance" ng-class="{'hidden': sumBalance == 0 || sumBalance == accountCtrl.account.cache.balance}" >
+            <div>
+              <div class="account__balance-title">Filtered Balance</div>
+              <div class="account__balance-value" ng-class="{'account__balance-value--negative': sumBalance < 0}">{{sumBalance | intCurrency : true : dbCtrl.currencyDigits | currency : dbCtrl.currencySymbol : dbCtrl.currencyDigits}}</div>
+            </div>
+          </div>
+          <div class="account__balance" ng-class="{'hidden': selectedBalance == 0}" >
+            <div>
+              <div class="account__balance-title">Selected Balance</div>
+              <div class="account__balance-value" ng-class="{'account__balance-value--negative': selectedBalance < 0}">{{selectedBalance | intCurrency : true : dbCtrl.currencyDigits | currency : dbCtrl.currencySymbol : dbCtrl.currencyDigits}}</div>
             </div>
           </div>
         </div>
@@ -68,9 +81,22 @@
   <div class="account__tbody">
     <div class="account__tr">
       <button class="account__add-button" ng-click="dbCtrl.stopPropagation($event); accountCtrl.createTransaction()"><i class="fa fa-plus"></i> {{'ADD_A_NEW_TRANSACTION' | translate}}</button>
-      <button class="account__add-button" ng-click="dbCtrl.stopPropagation($event); accountCtrl.createTransaction()"><i class="fa fa-exchange"></i> {{'MAKE_A_TRANSFER' | translate}}</button>
+      <!-- <button class="account__add-button" ng-click="dbCtrl.stopPropagation($event); accountCtrl.createTransaction()"><i class="fa fa-exchange"></i> {{'MAKE_A_TRANSFER' | translate}}</button> -->
+      
+      <!-- add -->
+      <!-- CSV 
+      <button class="account__add-button">
+        <i class="fa fa-cog app-view__budget-options"
+             budget-options
+             on-export="dbCtrl.accountFilteredExport(displayedTransactions)"
+             on-backup="dbCtrl.backup()"></i></button> -->
 
       <button class="account__add-button" ng-if="accountCtrl.selectedTransactions.length" bulk-edit-transactions="accountCtrl.selectedTransactions" manager="dbCtrl.manager" stop-propagation="dbCtrl.stopPropagation" payees="dbCtrl.payees"><i class="fa fa-edit"></i> <span translate="BULK_EDIT_TRANSACTIONS_AMOUNT" translate-values="{number: accountCtrl.selectedTransactions.length}"></span> <i class="fa fa-sort-desc"></i></button>
+
+       <button class="account__add-button" ng-if="accountCtrl.selectedTransactions.length" 
+               ng-click="accountCtrl.copyToClipboard(accountCtrl.selectedTransactions)">
+               <i class="fa fa-copy"></i>
+             Copy Selected as TSV</button>
     </div>
   </div>
   <div class="account__thead" ng-click="dbCtrl.stopPropagation($event)">
@@ -89,6 +115,26 @@
       <div class="account__th account__td--small account__cell-inflow" st-multi-sort="dbCtrl.customSorts.inflow"><span><span>{{'INFLOW' | translate}}</span></span></div>
       <div class="account__th account__cell-cleared" st-multi-sort="dbCtrl.customSorts.cleared"><span><span>{{'CLEARED' | translate}}</span></span></div>
     </div>
+    <div class="account__tr">
+      <div class="account__th account__th--select"><i title="Filter transactions" class="fa fa-filter"></i></div>
+      <div class="account__th account__td--large" ng-if="!accountCtrl.accountId"><input st-search="account" placeholder="search accounts" class="input-sm form-control" type="search"/></div>
+      <div class="account__th account__th--flag" ><div class=""><div></div></div></div>
+      <div class="account__th account__th--date-split account__th--date-split-left" >
+        <input calendar-input date-parser="shortDate" xd-st-search="dateStart" ng-model="accountCtrl.dateSearchStart"
+               class="input-sm form-control" type="search" placeholder="From">
+      </div>      
+      <div class="account__th account__th--date-split" >
+               <input calendar-input-end date-parser="shortDate" xd-st-search="dateEnd" ng-model="accountCtrl.dateSearchEnd"
+               class="input-sm form-control" type="search" placeholder="To">
+      </div>
+      <div class="account__th account__th--check" ng-if="accountCtrl.checkNumber"><input st-search="checkNumber" placeholder="search" class="input-sm form-control val-input-search" type="search"/></div>
+      <div class="account__th account__td--large"><span><span><input st-search="payee" placeholder="search payees" class="input-sm form-control" type="search"/></span></span></div>
+      <div class="account__th account__td--large" ng-if="accountCtrl.account.onBudget"><input st-search="category" placeholder="search categories" class="input-sm form-control" type="search"/></div>
+      <div class="account__th account__cell-memo"><input st-search="memo" placeholder="search memos" class="input-sm form-control" type="search"/></div>
+      <div class="account__th account__td--small account__cell-outflow"><input st-search="outflow" placeholder="search outflows" class="input-sm form-control val-input-search" type="search"/></div>
+      <div class="account__th account__td--small account__cell-inflow"><input st-search="inflow" placeholder="search inflows" class="input-sm form-control val-input-search" type="search"/></div>
+      <div class="account__th account__cell-cleared"><span><span></span></span></div>
+    </div>
   </div>
 
   <div class="account__tbody">
@@ -98,10 +144,14 @@
          class="account__transaction-editor"
          ng-click="dbCtrl.stopPropagation($event)"></transaction-editor>
 
-  </div>
-  
+  </div> 
   <div class="account__tbody account__tbody--striped virtual-list" vs-repeat vs-size="dbCtrl.getTransactionHeight(transaction)" ng-class="{'odd-total': displayedTransactions.length % 2}">
-    <div ng-repeat="transaction in displayedTransactions track by transaction.id">
+  
+  <!-- add -->
+  <div ng-repeat="transaction in displayedTransactions track by transaction.id"> 
+
+
+    
       <div class="account__tr"
            ng-if="accountCtrl.editingTransaction !== transaction"
            ng-click="accountCtrl.selectRow($event, $index+startIndex)"
@@ -116,7 +166,7 @@
           </span>
         </div>
         <div class="account__td account__td--flag"><div class="account__flag" ng-style="{'color': transaction.flag}" flag ng-model="transaction.flag"><div></div></div></div>
-        <div class="account__td account__td--date" transaction-field-focus-name="date">
+        <div class="account__td account__td--date">
           <span><span>{{transaction.date | date : 'shortDate'}}</span></span>
         </div>
         <div class="account__td account__td--check" ng-if="accountCtrl.checkNumber" transaction-field-focus-name="check">

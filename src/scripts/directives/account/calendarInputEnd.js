@@ -1,6 +1,6 @@
 import moment from 'moment';
 
-angular.module('financier').directive('calendarInput', ($rootScope, $locale, inputDropSetup) => {
+angular.module('financier').directive('calendarInputEnd', ($rootScope, $locale, inputDropSetup) => {
   let FIRSTDAYOFWEEK = $locale.DATETIME_FORMATS.FIRSTDAYOFWEEK;
   const shortDate = $locale.DATETIME_FORMATS.shortDate,
     plusMinusEnabled = shortDate.indexOf('-') === -1 && shortDate.indexOf('+') === -1;
@@ -11,24 +11,22 @@ angular.module('financier').directive('calendarInput', ($rootScope, $locale, inp
   if ($locale.id === 'en-au') {
     FIRSTDAYOFWEEK = 0;
   }
-
+  
   return {
     restrict: 'A',
     bindToController: {
       ngModel: '='
     },
-    controllerAs: 'calendarCtrl',
+    controllerAs: 'calendarEndCtrl',
     controller: function ($scope, $element) {
       const input = $element,
-        template = require('./calendarInput.html');
-
+        template = require('./calendarInputEnd.html');
       const dropSetup = inputDropSetup($scope, input, template);
-
       $scope.$on('$destroy', () => {
         dropSetup.destroy();
       });
 
-      $scope.thisMonth = new Date();
+      $scope.thisMonthEnd = new Date();
 
       $scope.$watch((() => this.ngModel), m => {
         // if date is undefined, set it to today with a new Date
@@ -36,16 +34,16 @@ angular.module('financier').directive('calendarInput', ($rootScope, $locale, inp
           m = new Date();
         }
         if (m) {
-          $scope.thisMonth = m;
-          $scope.month = $scope.generateMonth(m, m);
+          $scope.thisMonthEnd = m;
+          $scope.monthEnd = $scope.generateMonthEnd(m, m);
         }
       });
 
-      $scope.datesAreEqualToMonth = (d1, d2) => {
+      $scope.datesAreEqualToMonthEnd = (d1, d2) => {
         return d1 && d2 && (d1.getYear() === d2.getYear()) && (d1.getMonth() === d2.getMonth());
       };
 
-      $scope.datesAreEqualToDay = (d1, d2) => {
+      $scope.datesAreEqualToDayEnd = (d1, d2) => {
         return d1 &&
                d2 &&
                (d1.getYear() === d2.getYear()) && (d1.getMonth() === d2.getMonth()) &&
@@ -57,7 +55,7 @@ angular.module('financier').directive('calendarInput', ($rootScope, $locale, inp
         if (event.which === 38 ||
             (plusMinusEnabled && ((event.which === 187 && event.shiftKey) || event.which === 107))
         ) {
-          $scope.nextDay();
+          $scope.nextDayEnd();
 
           event.preventDefault();
 
@@ -65,7 +63,7 @@ angular.module('financier').directive('calendarInput', ($rootScope, $locale, inp
         } else if (event.which === 40 ||
             (plusMinusEnabled && ((event.which === 189 && !event.shiftKey) || event.which === 109))
         ) {
-          $scope.previousDay();
+          $scope.previousDayEnd();
 
           event.preventDefault();
         } else if (event.which === 9) { // tab
@@ -74,7 +72,7 @@ angular.module('financier').directive('calendarInput', ($rootScope, $locale, inp
 
         } else if (event.which === 13) { // enter
           dropSetup.close();
-          focusNextField();
+          focusNextFieldEnd();
         } else if (event.which === 34) { // pageDown
           this.ngModel = moment(this.ngModel).add(-1, 'month').toDate();
 
@@ -94,7 +92,7 @@ angular.module('financier').directive('calendarInput', ($rootScope, $locale, inp
         $scope.$apply();
       });
 
-      $scope.generateMonth = function (date, selectedDate) {
+      $scope.generateMonthEnd = function (date, selectedDate) {
         var d, dateIterator, i, j, month, startingDay, today, week;
         startingDay = (function () {
           var firstDayOfMonth, month, offset, ret, year;
@@ -126,9 +124,9 @@ angular.module('financier').directive('calendarInput', ($rootScope, $locale, inp
             d = new Date(dateIterator);
             week.push({
               date: d,
-              isSelected: $scope.datesAreEqualToDay(d, selectedDate),
-              isInMonth: $scope.datesAreEqualToMonth(d, date),
-              today: $scope.datesAreEqualToDay(d, today)
+              isSelected: $scope.datesAreEqualToDayEnd(d, selectedDate),
+              isInMonth: $scope.datesAreEqualToMonthEnd(d, date),
+              today: $scope.datesAreEqualToDayEnd(d, today)
             });
             dateIterator.setDate(dateIterator.getDate() + 1);
           }
@@ -138,61 +136,60 @@ angular.module('financier').directive('calendarInput', ($rootScope, $locale, inp
       };
 
       const update = () => {
-        $scope.month = $scope.generateMonth($scope.thisMonth, this.ngModel);
+        $scope.monthEnd = $scope.generateMonthEnd($scope.thisMonthEnd, this.ngModel);
       };
 
-      // $scope.month = $scope.generateMonth($scope.thisMonth, this.ngModel);
+      // $scope.monthEnd = $scope.generateMonthEnd($scope.thisMonthEnd, this.ngModel);
       
-      $scope.nextMonth = () => {
-        $scope.thisMonth = nextMonth($scope.thisMonth);
+      $scope.nextMonthEnd = () => {
+        $scope.thisMonthEnd = nextMonthEnd($scope.thisMonthEnd);
         update();
       };
 
-      $scope.previousMonth = () => {
-        $scope.thisMonth = previousMonth($scope.thisMonth);
+      $scope.previousMonthEnd = () => {
+        $scope.thisMonthEnd = previousMonthEnd($scope.thisMonthEnd);
         update();
       };
 
-      $scope.nextYear = () => {
-        $scope.thisMonth = nextYear($scope.thisMonth);
+      $scope.nextYearEnd = () => {
+        $scope.thisMonthEnd = nextYearEnd($scope.thisMonthEnd);
         update();
       };
 
-      $scope.previousYear = () => {
-        $scope.thisMonth = previousYear($scope.thisMonth);
+      $scope.previousYearEnd = () => {
+        $scope.thisMonthEnd = previousYearEnd($scope.thisMonthEnd);
         update();
       };
 
-      $scope.nextDay = () => {
-        const val = nextDay(this.ngModel);
+      $scope.nextDayEnd = () => {
+        const val = nextDayEnd(this.ngModel);
 
-        $scope.thisMonth = val;
+        $scope.thisMonthEnd = val;
         this.ngModel = val;
         update();
       };
 
-      $scope.previousDay = () => {
-        const val = previousDay(this.ngModel);
+      $scope.previousDayEnd = () => {
+        const val = previousDayEnd(this.ngModel);
 
-        $scope.thisMonth = val;
+        $scope.thisMonthEnd = val;
         this.ngModel = val;
         update();
       };
 
-      $scope.select = date => {
+      $scope.selectEnd = date => {
         this.ngModel = date;
         update();
-
         dropSetup.close();
 
-        focusNextField();
+        focusNextFieldEnd();
       };
 
       $scope.$on('transaction:date:focus', () => {
         dropSetup.focus();
       });
 
-      function focusNextField() {
+      function focusNextFieldEnd() {
         if ($scope.$parent.accountCtrl) {
           if ($scope.$parent.accountCtrl.checkNumber) {
             $rootScope.$broadcast('transaction:check:focus');
@@ -202,7 +199,7 @@ angular.module('financier').directive('calendarInput', ($rootScope, $locale, inp
         }
       }
 
-      function nextMonth(date) {
+      function nextMonthEnd(date) {
         if (date.getMonth() === 11) {
           return new Date(date.getFullYear() + 1, 0);
         } else {
@@ -210,15 +207,15 @@ angular.module('financier').directive('calendarInput', ($rootScope, $locale, inp
         }
       }
 
-      function nextDay(date) {
+      function nextDayEnd(date) {
         return new Date(date.setDate(date.getDate() + 1));
       }
 
-      function previousDay(date) {
+      function previousDayEnd(date) {
         return new Date(date.setDate(date.getDate() - 1));
       }
 
-      function previousMonth(date) {
+      function previousMonthEnd(date) {
         if (date.getMonth() === 0) {
           return new Date(date.getFullYear() - 1, 11);
         } else {
@@ -226,14 +223,14 @@ angular.module('financier').directive('calendarInput', ($rootScope, $locale, inp
         }
       }
 
-      function nextYear(date) {
+      function nextYearEnd(date) {
         var d;
         d = new Date(date);
         d.setFullYear(d.getFullYear() + 1);
         return d;
       }
 
-      function previousYear(date) {
+      function previousYearEnd(date) {
         var d;
         d = new Date(date);
         d.setFullYear(d.getFullYear() - 1);

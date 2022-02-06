@@ -1,0 +1,18 @@
+<div class="calendar_end">
+  <div class="calendar_end__header">
+    <div class="calendar_end__control" ng-click="previousMonthEnd()"><i class="fa fa-angle-left"></i></div>
+    <div class="calendar_end__title">{{thisMonthEnd | date : 'MMMM yyyy'}}</div>
+    <div class="calendar_end__control" ng-click="nextMonthEnd()"><i class="fa fa-angle-right"></i></div>
+  </div>
+  <div class="calendar_end__week calendar_end__week--header">
+    <div class="calendar_end__week-day" ng-repeat="day in monthEnd[0]">{{day.date | date : 'EEE' | removeDots}}</div>
+  </div>
+  <div class="calendar_end__week" ng-repeat="week in monthEnd track by week[0].date">
+    <div class="calendar_end__day"
+         ng-repeat="day in week track by day.date"
+         ng-click="selectEnd(day.date)"
+         ng-class="{'calendar_end__day--not-in-month': !day.isInMonth,
+                    'calendar_end__day--today': day.today,
+                    'calendar_end__day--selected': day.isSelected}">{{day.date | date : 'd'}}</div>
+  </div>
+</div>

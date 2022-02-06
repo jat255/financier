@@ -1,14 +1,21 @@
 import moment from 'moment';
 
-angular.module('financier').controller('accountCtrl', function ($translate, $timeout, $document, $element, $scope, $rootScope, $stateParams, data, transaction, payee, myBudget, budgetRecord, Hotkeys) {
+var fapp = angular.module('financier').controller('accountCtrl', function ($translate, $timeout, $document, $element, $scope, $rootScope, $stateParams, data, transaction, payee, myBudget, budgetRecord, Hotkeys, $filter, clipboard) {
   const that = this;
 
   const Transaction = transaction($stateParams.budgetId);
   const Payee = payee($stateParams.budgetId);
-
+  $rootScope.dbCtrl = $scope.dbCtrl;
+  $rootScope.actCtrl = this; 
   const { manager } = data;
-
+  $rootScope.sumBalance = 0;
+  $rootScope.selectedBalance = 0;
+  var sum = $rootScope.selectedBalance;
   this.accountId = $stateParams.accountId;
+  
+  //addition
+  $rootScope.all = [];
+
 
   if ($stateParams.accountId) {
     this.account = manager.getAccount($stateParams.accountId);
@@ -204,15 +211,50 @@ angular.module('financier').controller('accountCtrl', function ($translate, $tim
     }
   };
 
-  this.selectAll = () => {
+  $scope.$watch('displayedTransactions', () => {
+    // console.log('inside sumDisplayedTransactions')
+    // debugger;
+    let sumBalance = 0;
+    angular.forEach($scope.displayedTransactions, function(item) {
+       if (item.inflow) {
+          if( typeof item.inflow != 'undefined') {
+            sumBalance += parseInt((item.inflow || 0));
+          }     
+        }
+        if (item.outflow) {
+          if( typeof item.outflow != 'undefined') {
+            sumBalance -= parseInt((item.outflow || 0));
+          }    
+        }
+    })
+    $rootScope.sumBalance = sumBalance;
+  })
+
+  this.selectAll = () => {     
+
     this.selectedTransactions = $scope.displayedTransactions;
+    // console.log(`(all) selectedTransactions: ${this.selectedTransactions}`)
+    //selected Balance logic
+    sum = 0;
+    angular.forEach(this.selectedTransactions, function (item) { 
+     var outFlowIntCurrency = $filter('intCurrency')(item.outflow, true, 0);
+     var inFlowIntCurrency = $filter('intCurrency')(item.inflow, true, 0);               
+                 (outFlowIntCurrency != undefined ? sum -=  parseFloat(outFlowIntCurrency) : 0);
+                  (inFlowIntCurrency != undefined ? sum +=  parseFloat(inFlowIntCurrency) : 0);  
+            });
+    // console.log(`(all) sum is: ${sum}`)
+    $rootScope.selectedBalance = sum;
   };
 
-  this.isAllSelected = val => {
+  $scope.tempdata = [];
+
+  this.isAllSelected = val => {   
     if (angular.isDefined(val)) {
-      if (val) {
+      if (val) {        
         this.selectAll();
       } else {
+        // console.log("deselected all")
+        $rootScope.selectedBalance = 0;         
         this.selectedTransactions = [];
       }
     }
@@ -220,7 +262,7 @@ angular.module('financier').controller('accountCtrl', function ($translate, $tim
     return this.selectedTransactions.length === ($scope.displayedTransactions || []).length;
   };
 
-  const documentClickHandler = () => {
+  const documentClickHandler = () => {   
     that.selectedTransactions = [];
     that.selectedTransactionIndexes = [];
     this.editingTransaction = null;
@@ -260,6 +302,31 @@ angular.module('financier').controller('accountCtrl', function ($translate, $tim
     Hotkeys.deregisterHotkey(hotkeys);
   });
 
+  this.copyToClipboard = (input)  => {
+    var text = "";
+    angular.forEach(input, function (item) {             
+                var i = '';              
+                if (item.transfer && item.transfer.account) {
+                    i = item.transfer.account;
+                }                 
+                var account = $rootScope.actCtrl.manager.getAccount(item.account).name || 'No account';
+                var date =  $filter('date')(item._data.date ? item._data.date : "", "shortDate"); 
+                var payee = $rootScope.dbCtrl.getAccountName(i) || $rootScope.dbCtrl.getPayeeName(item.payee);
+                var category = $rootScope.dbCtrl.getCategoryName(item.category, item.date) || ($rootScope.actCtrl.transactionNeedsCategory(item) ? 'No Category' : '');
+                var memo = item._data.memo ? item._data.memo : "";               
+                
+                var inflow = $filter('intCurrency')(item.inflow ? item.inflow : "", true, 2);
+                var infl =  $filter('currency')(inflow, '$', 2); 
+
+                var outflow = $filter('intCurrency')(item.outflow ? item.outflow : "", true, 2);
+                var out =  $filter('currency')(outflow, '$', 2);
+
+                text +=  account + "\t"+ date+ "\t"+ payee+ "\t"+ category+ "\t"+ memo+ "\t"+ out+ "\t"+ infl +"\n";                               
+            });    
+    clipboard.copyText(text); 
+    $rootScope.selectedBalance = 0;
+  }
+
   this.stopEditing = () => {
     if (this.newTransaction) {
       this.newTransaction = null;
@@ -271,7 +338,7 @@ angular.module('financier').controller('accountCtrl', function ($translate, $tim
     }
   };
 
-  this.selectRow = function (event, rowIndex) {
+  this.selectRow = function (event, rowIndex) {     
     $scope.dbCtrl.stopPropagation(event);
 
     this.editingTransaction = null;
@@ -285,6 +352,7 @@ angular.module('financier').controller('accountCtrl', function ($translate, $tim
     that.selectedTransactionIndexes = that.selectedTransactions.map(trans => {
       for (let i = 0; i < $scope.displayedTransactions.length; i++) {
         if (trans === $scope.displayedTransactions[i]) {
+          // console.log(`Selected transaction is: ${JSON.stringify($scope.displayedTransactions[i], null, 4)}`)
           return i;
         }
       }
@@ -318,6 +386,16 @@ angular.module('financier').controller('accountCtrl', function ($translate, $tim
 
     that.selectedTransactions = that.selectedTransactionIndexes.map(i => $scope.displayedTransactions[i]);
 
+     //selected Balance logic
+    sum = 0;
+    angular.forEach(this.selectedTransactions, function (item) { 
+      var outFlowIntCurrency = $filter('intCurrency')(item.outflow, true, 0);
+      var inFlowIntCurrency = $filter('intCurrency')(item.inflow, true, 0);               
+      (outFlowIntCurrency != undefined ? sum -=  parseFloat(outFlowIntCurrency) : 0);
+      (inFlowIntCurrency != undefined ? sum +=  parseFloat(inFlowIntCurrency) : 0);  
+    });
+    $rootScope.selectedBalance = sum;
+
     $rootScope.$broadcast('vsRepeatTrigger');
   };
 
@@ -349,20 +427,40 @@ angular.module('financier').controller('accountCtrl', function ($translate, $tim
     var selectFromIndex = Math.min(rowIndex, lastSelectedRowIndex);
     var selectToIndex = Math.max(rowIndex, lastSelectedRowIndex);
     selectRows(selectFromIndex, selectToIndex);
+
   }
 
   function selectRows(selectFromIndex, selectToIndex) {
+
     for (var rowToSelect = selectFromIndex; rowToSelect <= selectToIndex; rowToSelect++) {
       select(rowToSelect);
     }
-  }
+  }  
 
-  function changeSelectionStatus(rowIndex) {
+  function changeSelectionStatus(rowIndex) {   
+    // console.log(`Inside changeSelectionStatus with rowIndex: ${rowIndex}`)
+    // console.log(`$scope.displayedTransactions[rowIndex].outflow is: ${$scope.displayedTransactions[rowIndex].outflow}`)
+    // console.log(`$scope.displayedTransactions[rowIndex].inflow is: ${$scope.displayedTransactions[rowIndex].inflow}`)
+    var outFlowIntCurrency = $filter('intCurrency')($scope.displayedTransactions[rowIndex].outflow, true, 0);
+    var inFlowIntCurrency = $filter('intCurrency')($scope.displayedTransactions[rowIndex].inflow, true, 0);     
+    
+    // console.log(`outFlowIntCurrency is: ${outFlowIntCurrency}`)
+    // console.log(`inFlowIntCurrency is: ${inFlowIntCurrency}`)
+    // console.log(`sum before changes is: ${sum}`)
     if (isRowSelected(rowIndex)) {
+        // row was de-selected, so we want to subtract any inflows and add any outflows
+         (outFlowIntCurrency != undefined ? sum +=  parseFloat(outFlowIntCurrency) : 0);
+         (inFlowIntCurrency != undefined ? sum -=  parseFloat(inFlowIntCurrency) : 0);
         unselect(rowIndex);
-    } else {
+    } else { 
+        // row was selected, so we want to add inflows to total and subtract outflows
+          (outFlowIntCurrency != undefined ? sum -=  parseFloat(outFlowIntCurrency) : 0);
+          (inFlowIntCurrency != undefined ? sum +=  parseFloat(inFlowIntCurrency) : 0);          
         select(rowIndex);
-    }
+    } 
+    // console.log(`sum at end is: ${sum}`)
+    $rootScope.selectedBalance = sum;
+    // console.log(`selectedBalance is: ${$rootScope.selectedBalance}`)
   }
 
   function select(rowIndex) {
@@ -375,6 +473,11 @@ angular.module('financier').controller('accountCtrl', function ($translate, $tim
     var rowIndexInSelectedRowsList = that.selectedTransactionIndexes.indexOf(rowIndex);
     var unselectOnlyOneRow = 1;
     that.selectedTransactionIndexes.splice(rowIndexInSelectedRowsList, unselectOnlyOneRow);
+  }
+
+  function isValidDate(dateString) {
+    var regEx = /^\d{4}-\d{2}-\d{2}$/;
+    return dateString.match(regEx) != null;
   }
 
   this.toggle = (index, event) => {
@@ -419,4 +522,149 @@ angular.module('financier').controller('accountCtrl', function ($translate, $tim
   $scope.$on('$destroy', () => {
     Hotkeys.deregisterHotkey(clearedHotkeys);
   });
+});
+
+angular.module('financier').filter('transactionFilters', function($rootScope, $filter){
+  return function(array, expression){
+    console.log(`filter expression is: ${JSON.stringify(expression, null, 4)}`)
+      return array.filter(function(val, index){
+        // in this function's context, `expression` is an object with
+        // the active filters entered in each field; `val` is the data
+        // representation of each row of the table
+
+        let searcher = (expression, val) => {
+          // placeholders for each field match
+          let dateMatch = true;
+          let accountMatch = true;
+          let payeeOrTransferMatch = true;
+          let checkNumberMatch = true;
+          let categoryMatch = true;
+          let memoMatch = true;
+          let outflowMatch = true;
+          let inflowMatch = true;
+          let uuidToSearch;
+          let strToSearch;
+
+          // do search on accounts if there was a value in the account filter
+          if (expression.account){
+            uuidToSearch = val.account  // this is the account ID in each row of the table
+            strToSearch = $rootScope.dbCtrl.getAccountName(uuidToSearch).toLowerCase();  // convert to an account name (we could memoize this to improve performance)
+            if (strToSearch) {
+              // if the account had a name (it always should, but catch in case)
+              // then check if the row's account contains the text entered in the filter field
+              accountMatch = strToSearch.includes(expression.account.toLowerCase());
+            } else {
+              accountMatch = false;
+            }
+          }
+          // Date filtering
+          if (expression.dateStart) {
+            let dateStart = new Date(expression.dateStart);
+            dateMatch = dateStart <= val.date;
+          }
+          if (expression.dateEnd) {
+            let dateEnd = new Date(expression.dateEnd);
+            dateMatch = dateEnd >= val.date;
+          }
+          if (expression.dateStart && expression.dateEnd) {
+            let dateStart = new Date(expression.dateStart);
+            let dateEnd = new Date(expression.dateEnd);
+            dateMatch = (dateStart <= val.date) && (val.date <= dateEnd);
+          }
+          // search for payee or transfer
+          if (expression.payee){
+            if (val.payee) {
+              uuidToSearch = val.payee
+              strToSearch = $rootScope.dbCtrl.getPayeeName(uuidToSearch).toLowerCase();
+            }
+            else if (val.transfer) {
+              uuidToSearch = val.transfer.account;
+              strToSearch = $rootScope.dbCtrl.getAccountName(uuidToSearch).toLowerCase();
+            }
+
+            if (strToSearch) {
+              payeeOrTransferMatch = strToSearch.includes(expression.payee.toLowerCase());
+            } else {
+              payeeOrTransferMatch = false;
+            }
+          }
+          // search for check number
+          if (expression.checkNumber) {
+            if (val.checkNumber) {
+              strToSearch = val.checkNumber.toString()
+              checkNumberMatch = strToSearch.includes(expression.checkNumber)
+            } else {
+              checkNumberMatch = false;
+            }
+          }
+          // search category
+          if (expression.category) {
+            if (val.category) {
+              let categoryName = $rootScope.dbCtrl.getCategoryName(val.category, val.date);
+              if (categoryName === undefined) categoryMatch = false;
+              else {
+                strToSearch = categoryName.toLowerCase()
+                categoryMatch = strToSearch.includes(expression.category.toLowerCase())
+              
+              } 
+            } else {
+              categoryMatch = false;
+            }
+          }
+          // search memo
+          if (expression.memo) {
+            if (val.memo) {
+              strToSearch = val.memo.toLowerCase()
+              memoMatch = strToSearch.includes(expression.memo.toLowerCase())
+            } else {
+              memoMatch = false;
+            }
+          }
+          // search outflows
+          if (expression.outflow) {
+            if (val.outflow) {
+              let outflowFloatStr = $filter('intCurrency')(val.outflow)
+              strToSearch = $filter('currency')(outflowFloatStr, '$', 2).replace(',', '')
+              let strToFind = expression.outflow.replace(',', '')
+              outflowMatch = strToSearch.includes(strToFind)
+            } else {
+              outflowMatch = false
+            }
+          }
+          // search inflows
+          if (expression.inflow) {
+            if (val.inflow) {
+              let inflowFloatStr = $filter('intCurrency')(val.inflow)
+              strToSearch = $filter('currency')(inflowFloatStr, '$', 2).replace(',', '')
+              let strToFind = expression.inflow.replace(',', '')
+              inflowMatch = strToSearch.includes(strToFind)
+            } else {
+              inflowMatch = false
+            }
+          }
+          
+          // return if all of the searches match
+          return (
+            accountMatch && 
+            dateMatch &&
+            payeeOrTransferMatch &&
+            checkNumberMatch && 
+            categoryMatch &&
+            memoMatch &&
+            outflowMatch && 
+            inflowMatch
+          );
+        }
+
+        // val.splits will be an array if there are split transactions; otherwise it will be an empty array
+        if (val.splits.length > 0) {
+          // splits were present
+          let matches = val.splits.map(x => searcher(expression, x));
+          // return if at least one value for the splits was true
+          return matches.some(v => v === true) || searcher(expression, val);
+        } else {
+          return searcher(expression, val);
+        }        
+    })
+  }
 });
