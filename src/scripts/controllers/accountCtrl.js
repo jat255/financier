@@ -532,128 +532,139 @@ angular.module('financier').filter('transactionFilters', function($rootScope, $f
         // the active filters entered in each field; `val` is the data
         // representation of each row of the table
 
-        // TODO: improve this filtering to include searching on split contents
+        let searcher = (expression, val) => {
+          // placeholders for each field match
+          let dateMatch = true;
+          let accountMatch = true;
+          let payeeOrTransferMatch = true;
+          let checkNumberMatch = true;
+          let categoryMatch = true;
+          let memoMatch = true;
+          let outflowMatch = true;
+          let inflowMatch = true;
+          let uuidToSearch;
+          let strToSearch;
 
-        // placeholders for each field match
-        let dateMatch = true;
-        let accountMatch = true;
-        let payeeOrTransferMatch = true;
-        let checkNumberMatch = true;
-        let categoryMatch = true;
-        let memoMatch = true;
-        let outflowMatch = true;
-        let inflowMatch = true;
-        let propertyToSearch;
-        let uuidToSearch;
-        let strToSearch;
-        
-        // do search on accounts if there was a value in the account filter
-        if (expression.account){
-          uuidToSearch = val.account  // this is the account ID in each row of the table
-          strToSearch = $rootScope.dbCtrl.getAccountName(uuidToSearch).toLowerCase();  // convert to an account name (we could memoize this to improve performance)
-          if (strToSearch) {
-            // if the account had a name (it always should, but catch in case)
-            // then check if the row's account contains the text entered in the filter field
-            accountMatch = strToSearch.includes(expression.account.toLowerCase());
-          } else {
-            accountMatch = false;
+          // do search on accounts if there was a value in the account filter
+          if (expression.account){
+            uuidToSearch = val.account  // this is the account ID in each row of the table
+            strToSearch = $rootScope.dbCtrl.getAccountName(uuidToSearch).toLowerCase();  // convert to an account name (we could memoize this to improve performance)
+            if (strToSearch) {
+              // if the account had a name (it always should, but catch in case)
+              // then check if the row's account contains the text entered in the filter field
+              accountMatch = strToSearch.includes(expression.account.toLowerCase());
+            } else {
+              accountMatch = false;
+            }
           }
-        }
-
-        // Date filtering
-        if (expression.dateStart) {
-          let dateStart = new Date(expression.dateStart);
-          dateMatch = dateStart <= val.date;
-        }
-        if (expression.dateEnd) {
-          let dateEnd = new Date(expression.dateEnd);
-          dateMatch = dateEnd >= val.date;
-        }
-        if (expression.dateStart && expression.dateEnd) {
-          let dateStart = new Date(expression.dateStart);
-          let dateEnd = new Date(expression.dateEnd);
-          dateMatch = (dateStart <= val.date) && (val.date <= dateEnd);
-        }
-
-        // search for payee or transfer, either single or in (TODO) splits
-        if (expression.payee){
-          if (val.payee) {
-            propertyToSearch = 'payee'
-            uuidToSearch = val.payee
-            strToSearch = $rootScope.dbCtrl.getPayeeName(uuidToSearch).toLowerCase();
+          // Date filtering
+          if (expression.dateStart) {
+            let dateStart = new Date(expression.dateStart);
+            dateMatch = dateStart <= val.date;
           }
-          else if (val.transfer) {
-            propertyToSearch = 'account'
-            uuidToSearch = val.transfer.account;
-            strToSearch = $rootScope.dbCtrl.getAccountName(uuidToSearch).toLowerCase();
+          if (expression.dateEnd) {
+            let dateEnd = new Date(expression.dateEnd);
+            dateMatch = dateEnd >= val.date;
           }
+          if (expression.dateStart && expression.dateEnd) {
+            let dateStart = new Date(expression.dateStart);
+            let dateEnd = new Date(expression.dateEnd);
+            dateMatch = (dateStart <= val.date) && (val.date <= dateEnd);
+          }
+          // search for payee or transfer
+          if (expression.payee){
+            if (val.payee) {
+              uuidToSearch = val.payee
+              strToSearch = $rootScope.dbCtrl.getPayeeName(uuidToSearch).toLowerCase();
+            }
+            else if (val.transfer) {
+              uuidToSearch = val.transfer.account;
+              strToSearch = $rootScope.dbCtrl.getAccountName(uuidToSearch).toLowerCase();
+            }
 
-          if (strToSearch) {
-            payeeOrTransferMatch = strToSearch.includes(expression.payee.toLowerCase());
-          } else {
-            payeeOrTransferMatch = false;
+            if (strToSearch) {
+              payeeOrTransferMatch = strToSearch.includes(expression.payee.toLowerCase());
+            } else {
+              payeeOrTransferMatch = false;
+            }
           }
+          // search for check number
+          if (expression.checkNumber) {
+            if (val.checkNumber) {
+              strToSearch = val.checkNumber.toString()
+              checkNumberMatch = strToSearch.includes(expression.checkNumber)
+            } else {
+              checkNumberMatch = false;
+            }
+          }
+          // search category
+          if (expression.category) {
+            if (val.category) {
+              let categoryName = $rootScope.dbCtrl.getCategoryName(val.category, val.date);
+              if (categoryName === undefined) categoryMatch = false;
+              else {
+                strToSearch = categoryName.toLowerCase()
+                categoryMatch = strToSearch.includes(expression.category.toLowerCase())
+              
+              } 
+            } else {
+              categoryMatch = false;
+            }
+          }
+          // search memo
+          if (expression.memo) {
+            if (val.memo) {
+              strToSearch = val.memo.toLowerCase()
+              memoMatch = strToSearch.includes(expression.memo.toLowerCase())
+            } else {
+              memoMatch = false;
+            }
+          }
+          // search outflows; TODO: allow for "=XX.xx" syntax which will look for exact match of value
+          if (expression.outflow) {
+            if (val.outflow) {
+              let outflowFloatStr = $filter('intCurrency')(val.outflow)
+              strToSearch = $filter('currency')(outflowFloatStr, '$', 2).replace(',', '')
+              let strToFind = expression.outflow.replace(',', '')
+              outflowMatch = strToSearch.includes(strToFind)
+            } else {
+              outflowMatch = false
+            }
+          }
+          // search inflows; TODO: allow for "=XX.xx" syntax which will look for exact match of value
+          if (expression.inflow) {
+            if (val.inflow) {
+              let inflowFloatStr = $filter('intCurrency')(val.inflow)
+              strToSearch = $filter('currency')(inflowFloatStr, '$', 2).replace(',', '')
+              let strToFind = expression.inflow.replace(',', '')
+              inflowMatch = strToSearch.includes(strToFind)
+            } else {
+              inflowMatch = false
+            }
+          }
+          
+          // return if all of the searches match
+          return (
+            accountMatch && 
+            dateMatch &&
+            payeeOrTransferMatch &&
+            checkNumberMatch && 
+            categoryMatch &&
+            memoMatch &&
+            outflowMatch && 
+            inflowMatch
+          );
         }
 
-        if (expression.checkNumber) {
-          if (val.checkNumber) {
-            strToSearch = val.checkNumber.toString()
-            checkNumberMatch = strToSearch.includes(expression.checkNumber)
-          } else {
-            checkNumberMatch = false;
-          }
-        }
-
-        if (expression.category) {
-          if (val.category) {
-            strToSearch = $rootScope.dbCtrl.getCategoryName(val.category, val.date).toLowerCase()
-            categoryMatch = strToSearch.includes(expression.category.toLowerCase())
-          } else {
-            categoryMatch = false;
-          }
-        }
-
-        if (expression.memo) {
-          if (val.memo) {
-            strToSearch = val.memo.toLowerCase()
-            memoMatch = strToSearch.includes(expression.memo.toLowerCase())
-          } else {
-            memoMatch = false;
-          }
-        }
-
-        if (expression.outflow) {
-          if (val.outflow) {
-            let outflowFloatStr = $filter('intCurrency')(val.outflow)
-            strToSearch = $filter('currency')(outflowFloatStr, '$', 2).replace(',', '')
-            let strToFind = expression.outflow.replace(',', '')
-            outflowMatch = strToSearch.includes(strToFind)
-          } else {
-            outflowMatch = false
-          }
-        }
-
-        if (expression.inflow) {
-          if (val.inflow) {
-            let inflowFloatStr = $filter('intCurrency')(val.inflow)
-            strToSearch = $filter('currency')(inflowFloatStr, '$', 2).replace(',', '')
-            let strToFind = expression.inflow.replace(',', '')
-            inflowMatch = strToSearch.includes(strToFind)
-          } else {
-            inflowMatch = false
-          }
-        }
-
-        return (
-          accountMatch && 
-          dateMatch &&
-          payeeOrTransferMatch &&
-          checkNumberMatch && 
-          categoryMatch &&
-          memoMatch &&
-          outflowMatch && 
-          inflowMatch
-        );
+        // val.splits will be an array if there are split transactions; otherwise it will be an empty array
+        if (val.splits.length > 0) {
+          // splits were present
+          let matches = val.splits.map(x => searcher(expression, x));
+          // return if at least one value for the splits was true
+          return matches.some(v => v === true) || searcher(expression, val);
+        } else {
+          return searcher(expression, val);
+        }        
     })
   }
 });
