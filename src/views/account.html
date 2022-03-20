@@ -81,6 +81,11 @@
   <div class="account__tbody">
     <div class="account__tr">
       <button class="account__add-button" ng-click="dbCtrl.stopPropagation($event); accountCtrl.createTransaction()"><i class="fa fa-plus"></i> {{'ADD_A_NEW_TRANSACTION' | translate}}</button>
+      <button class="account__showFilters-button" ng-click="dbCtrl.stopPropagation($event); showFilters = !showFilters"><i class="fa fa-filter"></i>
+        <span ng-switch="showFilters">
+          <span ng-switch-when="true">Hide</span>
+          <span ng-switch-default>Show</span>
+        </span> Filters</button>
       <!-- <button class="account__add-button" ng-click="dbCtrl.stopPropagation($event); accountCtrl.createTransaction()"><i class="fa fa-exchange"></i> {{'MAKE_A_TRANSFER' | translate}}</button> -->
       
       <!-- add -->
@@ -115,7 +120,7 @@
       <div class="account__th account__td--small account__cell-inflow" st-multi-sort="dbCtrl.customSorts.inflow"><span><span>{{'INFLOW' | translate}}</span></span></div>
       <div class="account__th account__cell-cleared" st-multi-sort="dbCtrl.customSorts.cleared"><span><span>{{'CLEARED' | translate}}</span></span></div>
     </div>
-    <div class="account__tr">
+    <div class="account__tr" ng-if="showFilters">
       <div class="account__th account__th--select"><i title="Filter transactions" class="fa fa-filter"></i></div>
       <div class="account__th account__td--large" ng-if="!accountCtrl.accountId"><input st-search="account" placeholder="search accounts" class="input-sm form-control" type="search"/></div>
       <div class="account__th account__th--flag" ><div class=""><div></div></div></div>

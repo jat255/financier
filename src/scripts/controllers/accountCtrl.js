@@ -5,6 +5,7 @@ var fapp = angular.module('financier').controller('accountCtrl', function ($tran
 
   const Transaction = transaction($stateParams.budgetId);
   const Payee = payee($stateParams.budgetId);
+  $scope.showFilters = false;
   $rootScope.dbCtrl = $scope.dbCtrl;
   $rootScope.actCtrl = this; 
   const { manager } = data;
@@ -157,7 +158,8 @@ var fapp = angular.module('financier').controller('accountCtrl', function ($tran
 
       $timeout(() => {
         if (this.accountId) {
-          $scope.$broadcast('transaction:date:focus');
+          if ($scope.showFilters) $scope.$broadcast('transaction:payee:focus');
+          else $scope.$broadcast('transaction:date:focus');
         } else {
           $scope.$broadcast('transaction:account:focus');
         }
